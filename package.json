@@ -2,16 +2,24 @@
   "name": "contracts-and-tracks-data-processor",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
   "scripts": {
-    "start": "tsc && node dist/index.js",
+    "start": "ts-node src/index",
     "lint": "eslint . --ext .ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/mongoose": "^5.11.97",
     "eslint": "^9.6.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.5.3"
+  },
+  "dependencies": {
+    "@types/node": "^20.14.9",
+    "dotenv": "^16.4.5",
+    "mongoose": "^8.4.4",
+    "xlsx-import": "^2.4.7"
   }
 }
