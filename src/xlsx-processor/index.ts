@@ -1,28 +1,28 @@
-import { ImporterFactory } from 'xlsx-import/lib/ImporterFactory';
-import mongoose from 'mongoose';
+import { ImporterFactory } from "xlsx-import/lib/ImporterFactory";
+import mongoose from "mongoose";
 
-import config from './config';
-import { Contract, Track } from '../schema';
-import { TrackRecord, TrackHeader } from '../types';
+import config from "./config";
+import { Contract, Track } from "../schema";
+import { TrackRecord, TrackHeader } from "../types";
 
 class XLSXProcessor {
-  static factory = new ImporterFactory();
+  static readonly factory = new ImporterFactory();
 
   static async validateImportFileHeaders(path: string): Promise<void> {
     const xlsx = await XLSXProcessor.factory.from(path);
     const trackHeaders: TrackHeader = xlsx.getFirstItem<TrackHeader>(
-      config.trackHeaders,
+      config.trackHeaders
     );
 
     const KeyToLabelValues = [
-      'ID',
-      'Title',
-      'Version',
-      'Artist',
-      'ISRC',
-      'P Line',
-      'Aliases',
-      'Contract',
+      "ID",
+      "Title",
+      "Version",
+      "Artist",
+      "ISRC",
+      "P Line",
+      "Aliases",
+      "Contract",
     ];
 
     const isValid = Object.keys(trackHeaders).every((key: string) => {
@@ -31,7 +31,7 @@ class XLSXProcessor {
     });
 
     if (!isValid) {
-      throw new Error('Invalid column headers');
+      throw new Error("Invalid column headers");
     }
   }
 
@@ -39,21 +39,21 @@ class XLSXProcessor {
     await XLSXProcessor.validateImportFileHeaders(path);
     const xlsx = await XLSXProcessor.factory.from(path);
     const tracks: Array<TrackRecord> = xlsx.getAllItems<TrackRecord>(
-      config.trackRecords,
+      config.trackRecords
     );
     return tracks;
   }
 }
 
 const getTrackContract = async (
-  contractName: string,
+  contractName: string
 ): Promise<mongoose.Document> => {
   const trackContract = await Contract.findOne({
     name: contractName,
   });
 
   if (!trackContract) {
-    throw new Error('Contract not found');
+    throw new Error("Contract not found");
   }
 
   return trackContract;
@@ -64,15 +64,15 @@ const importTracks = async (path: string): Promise<string[]> => {
 
   try {
     await Contract.findOneAndUpdate(
-      { name: 'Contract 1' },
-      { name: 'Contract 1' },
-      { upsert: true, new: true },
+      { name: "Contract 1" },
+      { name: "Contract 1" },
+      { upsert: true, new: true }
     );
 
     const tracks: TrackRecord[] = await XLSXProcessor.importTracks(path);
 
     if (tracks?.length === 0) {
-      throw new Error('No tracks to process');
+      throw new Error("No tracks to process");
     }
 
     for (const [index, track] of tracks.entries()) {
@@ -94,15 +94,19 @@ const importTracks = async (path: string): Promise<string[]> => {
           data.contract_id = trackContract;
         }
 
-        await Track.findByIdAndUpdate(track.id, data, {
-          upsert: true,
-          new: true,
-        });
+        if (track.id) {
+          await Track.findByIdAndUpdate(track.id, data, {
+            upsert: true,
+            new: true,
+          });
+        } else {
+          (await Track.create(data)).save();
+        }
       } catch (error) {
         errors.push(
           `there is an issue uploading data for row ${index + 3}. Error - ${
             error.message
-          }`,
+          }`
         );
       }
     }

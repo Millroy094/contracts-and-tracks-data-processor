@@ -1,3 +1,4 @@
+import { isEmpty } from "lodash";
 import { model, Schema } from "mongoose";
 
 const contractSchema = new Schema({
@@ -6,11 +7,22 @@ const contractSchema = new Schema({
 });
 
 const trackSchema = new Schema({
-  _id: Object,
-  title: { type: String, required: true },
+  title: {
+    type: String,
+    validate: {
+      validator: (v) => !isEmpty(v),
+      message: "{PATH} is required",
+    },
+  },
   version: { type: String },
   artist: { type: String },
-  isrc: { type: String, required: true },
+  isrc: {
+    type: String,
+    validate: {
+      validator: (v) => !isEmpty(v),
+      message: "{PATH} is required",
+    },
+  },
   p_line: { type: String },
   aliases: { type: [String] },
   contract_id: {
